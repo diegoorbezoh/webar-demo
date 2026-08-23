@@ -2,7 +2,6 @@
 <html lang="es">
 
 <head>
-
   <meta charset="utf-8">
 
   <meta
@@ -10,46 +9,34 @@
     content="width=device-width, initial-scale=1, user-scalable=no"
   >
 
-  <title>WebAR - Perrito saltando</title>
-
+  <title>WebAR - Perrito 3D</title>
 
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-
   <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
 
+  <!-- animation-mixer para reproducir animaciones GLB -->
+  <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
 
   <style>
-
     html,
     body {
-
       margin: 0;
-
       width: 100%;
       height: 100%;
-
       overflow: hidden;
-
       background: transparent !important;
-
     }
-
 
     canvas,
     .a-canvas {
-
       background: transparent !important;
-
     }
 
-
     .mensaje {
-
       position: fixed;
-
       top: 10px;
       left: 10px;
       right: 10px;
@@ -58,194 +45,102 @@
 
       padding: 10px 14px;
 
-      background: rgba(255,255,255,.90);
-
+      background: rgba(255, 255, 255, 0.9);
       color: #111;
 
       border-radius: 12px;
 
       font-family: Arial, sans-serif;
-
-      text-align: center;
-
       font-size: 14px;
-
+      text-align: center;
     }
-
   </style>
-
 </head>
-
-
 
 <body>
 
-
   <div class="mensaje">
-
-    Apunta al marcador HIRO 🐶
-
+    Apunta la cámara al marcador HIRO 🐶
   </div>
 
-
-
   <a-scene
-
     embedded
-
-    vr-mode-ui="enabled:false"
+    vr-mode-ui="enabled: false"
 
     renderer="
-      alpha:true;
-      antialias:true;
-      logarithmicDepthBuffer:true;
+      alpha: true;
+      antialias: true;
+      logarithmicDepthBuffer: true;
     "
 
     arjs="
-      sourceType:webcam;
-      debugUIEnabled:false;
-      detectionMode:mono;
+      sourceType: webcam;
+      debugUIEnabled: false;
+      detectionMode: mono;
     "
-
   >
 
-
-
-    <!-- IMÁGENES / RECURSOS -->
-
+    <!-- RECURSOS -->
     <a-assets>
 
-
-      <!--
-      Debes subir una imagen llamada perrito.png
-      al mismo repositorio.
-
-      Idealmente debe tener fondo transparente.
-      -->
-
-      <img
-        id="dog"
-        src="perrito.png"
-      >
-
+      <a-asset-item
+        id="dogModel"
+        src="perrito-3d-animado.glb">
+      </a-asset-item>
 
     </a-assets>
 
 
-
-    <!-- MARCADOR -->
-
+    <!-- MARCADOR HIRO -->
     <a-marker preset="hiro">
 
 
-
-      <!--
-      Contenedor principal
-      -->
-
+      <!-- PERRITO 3D -->
       <a-entity
+        id="dog"
 
-        position="0 0 0"
+        gltf-model="#dogModel"
 
-        rotation="-90 0 0"
+        animation-mixer="
+          clip: Jump;
+          loop: repeat;
+          repetitions: Infinity;
+          timeScale: 1;
+        "
 
+        position="0 0 0.2"
+
+        rotation="0 0 0"
+
+        scale="0.45 0.45 0.45"
       >
-
-
-
-        <!--
-        SOMBRA DEL PERRITO
-        -->
-
-        <a-circle
-
-          radius="0.38"
-
-          position="0 0 -0.02"
-
-          material="
-            color:#000000;
-            opacity:0.22;
-            transparent:true;
-          "
-
-          scale="1 0.35 1"
-
-        >
-
-        </a-circle>
-
-
-
-        <!--
-        PERRITO
-        -->
-
-        <a-image
-
-          src="#dog"
-
-          width="1"
-
-          height="1"
-
-          position="0 0 0.1"
-
-
-          animation="
-            property: position;
-            from: 0 0 0.1;
-            to: 0 0.75 0.1;
-            dir: alternate;
-            dur: 550;
-            loop: true;
-            easing: easeOutQuad;
-          "
-
-
-          animation__rotate="
-            property: rotation;
-            from: 0 0 -7;
-            to: 0 0 7;
-            dir: alternate;
-            dur: 550;
-            loop: true;
-            easing: easeInOutSine;
-          "
-
-
-          animation__scale="
-            property: scale;
-            from: 1 1 1;
-            to: 1.08 0.94 1;
-            dir: alternate;
-            dur: 550;
-            loop: true;
-            easing: easeInOutQuad;
-          "
-
-        >
-
-        </a-image>
-
-
-
       </a-entity>
 
+
+      <!-- SOMBRA SIMPLE -->
+      <a-circle
+        position="0 0.01 0"
+        rotation="-90 0 0"
+
+        radius="0.35"
+
+        material="
+          color: #000000;
+          opacity: 0.20;
+          transparent: true;
+        "
+
+        scale="1 0.45 1">
+      </a-circle>
 
 
     </a-marker>
 
 
-
     <!-- CÁMARA -->
-
     <a-entity camera></a-entity>
 
-
-
   </a-scene>
-
 
 </body>
 
