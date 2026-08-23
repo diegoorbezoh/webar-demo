@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8">
 
@@ -9,16 +8,11 @@
     content="width=device-width, initial-scale=1, user-scalable=no"
   >
 
-  <title>WebAR - Perrito 3D</title>
+  <title>WebAR - Chispa</title>
 
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-  <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
-
-  <!-- animation-mixer para reproducir animaciones GLB -->
-  <script src="https://cdn.jsdelivr.net/gh/n5ro/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
 
   <style>
     html,
@@ -43,105 +37,164 @@
 
       z-index: 9999;
 
-      padding: 10px 14px;
+      padding: 10px;
 
-      background: rgba(255, 255, 255, 0.9);
-      color: #111;
+      background: rgba(255,255,255,.9);
 
       border-radius: 12px;
 
       font-family: Arial, sans-serif;
-      font-size: 14px;
       text-align: center;
     }
   </style>
+
+  <script>
+
+    AFRAME.registerComponent("chispa-animation", {
+
+      init: function () {
+
+        const marker = this.el;
+
+        marker.addEventListener("markerFound", () => {
+
+          const foto = document.querySelector("#chispaAR");
+
+          /*
+            Reiniciamos la animación cada vez
+            que se detecta la foto.
+          */
+
+          foto.setAttribute("scale", "0.05 0.05 0.05");
+          foto.setAttribute("position", "0 0.1 0");
+          foto.setAttribute("rotation", "-90 0 -12");
+
+          foto.emit("chispaStart");
+
+        });
+
+      }
+
+    });
+
+  </script>
+
 </head>
 
 <body>
 
   <div class="mensaje">
-    Apunta la cámara al marcador HIRO 🐶
+    Apunta la cámara a la imagen de Chispa 🐶
   </div>
 
+
   <a-scene
+
     embedded
-    vr-mode-ui="enabled: false"
+
+    vr-mode-ui="enabled:false"
 
     renderer="
-      alpha: true;
-      antialias: true;
-      logarithmicDepthBuffer: true;
+      alpha:true;
+      antialias:true;
+      logarithmicDepthBuffer:true;
     "
 
     arjs="
-      sourceType: webcam;
-      debugUIEnabled: false;
-      detectionMode: mono;
+      sourceType:webcam;
+      debugUIEnabled:false;
+      detectionMode:mono;
     "
+
   >
 
-    <!-- RECURSOS -->
+
     <a-assets>
 
-      <a-asset-item
-        id="dogModel"
-        src="perrito-3d-animado.glb">
-      </a-asset-item>
+      <img
+        id="chispa"
+        src="chispa.png"
+      >
 
     </a-assets>
 
 
-    <!-- MARCADOR HIRO -->
-    <a-marker preset="hiro">
+
+    <!-- MARCADOR PERSONALIZADO -->
+
+    <a-marker
+
+      type="pattern"
+
+      url="pattern-chispa.patt"
+
+      chispa-animation
+
+    >
 
 
-      <!-- PERRITO 3D -->
-      <a-entity
-        id="dog"
+      <!--
+        FOTO DE CHISPA QUE APARECE EN AR
+      -->
 
-        gltf-model="#dogModel"
+      <a-image
 
-        animation-mixer="
-          clip: Jump;
-          loop: repeat;
-          repetitions: Infinity;
-          timeScale: 1;
-        "
+        id="chispaAR"
 
-        position="0 0 0.2"
+        src="#chispa"
 
-        rotation="0 0 0"
+        width="0.78"
 
-        scale="0.45 0.45 0.45"
-      >
-      </a-entity>
+        height="1"
 
+        position="0 0.1 0"
 
-      <!-- SOMBRA SIMPLE -->
-      <a-circle
-        position="0 0.01 0"
         rotation="-90 0 0"
 
-        radius="0.35"
+        scale="0.05 0.05 0.05"
 
-        material="
-          color: #000000;
-          opacity: 0.20;
-          transparent: true;
+
+        animation__scale="
+          property: scale;
+          from: 0.05 0.05 0.05;
+          to: 1 1 1;
+          dur: 900;
+          easing: easeOutElastic;
+          startEvents: chispaStart;
         "
 
-        scale="1 0.45 1">
-      </a-circle>
+
+        animation__position="
+          property: position;
+          from: 0 0.1 0;
+          to: 0 0.55 0;
+          dur: 1000;
+          easing: easeOutQuad;
+          startEvents: chispaStart;
+        "
+
+
+        animation__rotation="
+          property: rotation;
+          from: -90 0 -12;
+          to: -90 0 8;
+          dur: 1100;
+          easing: easeInOutSine;
+          startEvents: chispaStart;
+        "
+
+      >
+
+      </a-image>
 
 
     </a-marker>
 
 
-    <!-- CÁMARA -->
     <a-entity camera></a-entity>
+
 
   </a-scene>
 
 </body>
-
 </html>
