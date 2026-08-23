@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="es">
-
 <head>
 
   <meta charset="utf-8">
@@ -10,16 +9,21 @@
     content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"
   >
 
-  <title>WebAR - Video + Audio</title>
+  <title>WebAR optimizado</title>
 
+  <!-- Precarga solo lo necesario para tracking -->
+  <link
+    rel="preload"
+    href="./targets.mind"
+    as="fetch"
+    crossorigin="anonymous"
+  >
 
-  <!-- A-FRAME -->
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-
-  <!-- MINDAR -->
+  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
 
   <style>
 
@@ -39,7 +43,6 @@
 
     }
 
-
     a-scene,
     .a-canvas {
 
@@ -47,14 +50,6 @@
 
     }
 
-
-    /*
-      VIDEO VISUAL
-
-      Siempre permanece muted.
-      Safari puede usarlo como textura WebGL
-      sin restricciones de autoplay.
-    */
 
     #videoVisual {
 
@@ -119,7 +114,6 @@
       padding: 14px 22px;
 
       font-size: 16px;
-
       font-weight: bold;
 
       background: white;
@@ -149,32 +143,19 @@
 
 
   <div id="estado">
-
     Abriendo cámara...
-
   </div>
 
 
-
   <button id="activarAudio">
-
     🔊 Activar sonido
-
   </button>
 
 
-
-  <!--
-    AUDIO INDEPENDIENTE
-
-    Utilizamos el mismo MP4,
-    pero este elemento únicamente maneja sonido.
-  -->
-
+  <!-- Audio separado -->
   <audio
     id="audioAR"
-    src="./video-ar-5s.mp4"
-    preload="auto">
+    preload="none">
   </audio>
 
 
@@ -189,18 +170,15 @@
       uiLoading: no;
       uiScanning: no;
       uiError: no;
-      warmupTolerance: 5;
-      missTolerance: 5;
+      warmupTolerance: 3;
+      missTolerance: 3;
     "
 
     embedded
 
-    color-space="sRGB"
-
     renderer="
-      colorManagement: true;
-      physicallyCorrectLights: true;
       alpha: true;
+      antialias: true;
     "
 
     loading-screen="enabled:false"
@@ -213,25 +191,18 @@
 
 
 
-    <!-- RECURSOS -->
-
-    <a-assets timeout="15000">
-
+    <a-assets timeout="8000">
 
       <!--
         IMPORTANTE:
-
-        Este video SIEMPRE está muted.
-        Nunca lo desmuteamos.
+        no cargamos el mp4 al inicio
       -->
 
       <video
 
         id="videoVisual"
 
-        src="./video-ar-5s.mp4"
-
-        preload="auto"
+        preload="none"
 
         muted
 
@@ -243,12 +214,9 @@
 
       ></video>
 
-
     </a-assets>
 
 
-
-    <!-- CÁMARA -->
 
     <a-camera
 
@@ -260,8 +228,6 @@
 
 
 
-    <!-- TARGET -->
-
     <a-entity
 
       id="target"
@@ -270,9 +236,6 @@
 
     >
 
-
-
-      <!-- VIDEO SUPERPUESTO -->
 
       <a-plane
 
@@ -295,7 +258,6 @@
       ></a-plane>
 
 
-
     </a-entity>
 
 
@@ -304,7 +266,6 @@
 
 
 <script>
-
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -343,12 +304,14 @@ document.addEventListener(
 
     let targetVisible = false;
 
+    let mediaCargada = false;
+
 
 
     /*
-      ====================================
-      VIDEO DE CÁMARA COMO FONDO
-      ====================================
+      =====================================
+      CÁMARA COMO FONDO
+      =====================================
     */
 
 
@@ -359,10 +322,6 @@ document.addEventListener(
         .querySelectorAll("video")
         .forEach((v) => {
 
-
-          /*
-            Ignoramos nuestro video AR.
-          */
 
           if (v.id !== "videoVisual") {
 
@@ -425,9 +384,47 @@ document.addEventListener(
 
 
     /*
-      ====================================
+      =====================================
+      CARGAR VIDEO DESPUÉS DE ABRIR CÁMARA
+      =====================================
+    */
+
+
+    function cargarMedia() {
+
+
+      if (mediaCargada) return;
+
+
+      mediaCargada = true;
+
+
+      video.src =
+        "./video-ar-5s.mp4";
+
+
+      audio.src =
+        "./video-ar-5s.mp4";
+
+
+      video.load();
+
+      audio.load();
+
+
+      console.log(
+        "MP4 cargando en segundo plano"
+      );
+
+
+    }
+
+
+
+    /*
+      =====================================
       MINDAR LISTO
-      ====================================
+      =====================================
     */
 
 
@@ -441,18 +438,30 @@ document.addEventListener(
 
         setTimeout(
           ajustarCamara,
-          300
+          200
         );
 
 
         setTimeout(
           ajustarCamara,
-          1000
+          600
         );
 
 
         estado.textContent =
-          "📷 Apunta a la imagen";
+          "📷 Cámara lista · apunta a la imagen";
+
+
+        /*
+          MUY IMPORTANTE:
+          cargamos el video recién ahora
+        */
+
+
+        setTimeout(
+          cargarMedia,
+          300
+        );
 
 
       }
@@ -475,12 +484,9 @@ document.addEventListener(
 
 
     /*
-      ====================================
+      =====================================
       ACTIVAR AUDIO
-
-      Aquí SOLO desbloqueamos <audio>.
-      No tocamos el video AR.
-      ====================================
+      =====================================
     */
 
 
@@ -492,33 +498,31 @@ document.addEventListener(
         try {
 
 
-          audio.volume = 1;
-
-
           /*
-            Safari necesita que play()
-            ocurra como consecuencia directa
-            del toque del usuario.
+            Si aún no cargamos el mp4,
+            lo cargamos ahora.
           */
+
+
+          cargarMedia();
+
+
+          audio.volume =
+            1;
 
 
           await audio.play();
 
 
-          /*
-            Lo detenemos inmediatamente.
-
-            Ya quedó desbloqueado.
-          */
-
-
           audio.pause();
 
 
-          audio.currentTime = 0;
+          audio.currentTime =
+            0;
 
 
-          audioActivado = true;
+          audioActivado =
+            true;
 
 
           botonAudio.classList.add(
@@ -527,14 +531,7 @@ document.addEventListener(
 
 
           estado.textContent =
-            "✅ Sonido activado · apunta a la imagen";
-
-
-          /*
-            Si el target ya estaba siendo visto
-            cuando activamos audio,
-            empezamos el sonido sincronizado.
-          */
+            "✅ Sonido activado";
 
 
           if (targetVisible) {
@@ -556,7 +553,7 @@ document.addEventListener(
 
 
           console.error(
-            "Error desbloqueando audio:",
+            "Error activando audio:",
             error
           );
 
@@ -574,9 +571,9 @@ document.addEventListener(
 
 
     /*
-      ====================================
-      TARGET DETECTADO
-      ====================================
+      =====================================
+      TARGET ENCONTRADO
+      =====================================
     */
 
 
@@ -585,7 +582,8 @@ document.addEventListener(
       async () => {
 
 
-        targetVisible = true;
+        targetVisible =
+          true;
 
 
         estado.textContent =
@@ -593,53 +591,36 @@ document.addEventListener(
 
 
         /*
-          Reiniciamos video visual.
+          Por si el target se detecta
+          antes de que carguemos el video.
         */
 
 
-        video.pause();
-
-        video.currentTime = 0;
-
-
-        /*
-          MUY IMPORTANTE:
-
-          El video visual SIEMPRE muted.
-        */
-
-
-        video.muted = true;
-
-
-        /*
-          Mostramos plano AR.
-        */
-
-
-        plane.setAttribute(
-          "visible",
-          true
-        );
+        cargarMedia();
 
 
         try {
 
 
-          /*
-            Este autoplay debería funcionar
-            porque el video está muted.
-          */
+          video.pause();
+
+
+          video.currentTime =
+            0;
+
+
+          video.muted =
+            true;
+
+
+          plane.setAttribute(
+            "visible",
+            true
+          );
 
 
           await video.play();
 
-
-
-          /*
-            Si el audio está habilitado,
-            lo iniciamos al mismo tiempo.
-          */
 
 
           if (audioActivado) {
@@ -647,7 +628,9 @@ document.addEventListener(
 
             audio.pause();
 
-            audio.currentTime = 0;
+
+            audio.currentTime =
+              0;
 
 
             try {
@@ -658,12 +641,12 @@ document.addEventListener(
 
             }
 
-            catch (audioError) {
+            catch (e) {
 
 
               console.log(
                 "Audio bloqueado:",
-                audioError
+                e
               );
 
 
@@ -672,11 +655,6 @@ document.addEventListener(
 
           }
 
-
-
-          /*
-            Forzar actualización de textura.
-          */
 
 
           const mesh =
@@ -717,14 +695,53 @@ document.addEventListener(
           );
 
 
-          plane.setAttribute(
-            "visible",
-            false
-          );
-
-
           estado.textContent =
-            "❌ Error reproduciendo video";
+            "⚠️ Cargando video...";
+
+
+          /*
+            Intento adicional después
+            de una pequeña espera.
+          */
+
+
+          setTimeout(
+            async () => {
+
+
+              try {
+
+
+                await video.play();
+
+
+                plane.setAttribute(
+                  "visible",
+                  true
+                );
+
+
+                estado.textContent =
+                  "▶️ Reproduciendo video AR";
+
+
+              }
+
+              catch (e) {
+
+
+                console.error(
+                  "Segundo intento:",
+                  e
+                );
+
+
+              }
+
+
+            },
+            500
+          );
 
 
         }
@@ -736,9 +753,9 @@ document.addEventListener(
 
 
     /*
-      ====================================
+      =====================================
       TARGET PERDIDO
-      ====================================
+      =====================================
     */
 
 
@@ -747,7 +764,8 @@ document.addEventListener(
       () => {
 
 
-        targetVisible = false;
+        targetVisible =
+          false;
 
 
         video.pause();
@@ -755,9 +773,12 @@ document.addEventListener(
         audio.pause();
 
 
-        video.currentTime = 0;
+        video.currentTime =
+          0;
 
-        audio.currentTime = 0;
+
+        audio.currentTime =
+          0;
 
 
         plane.setAttribute(
@@ -776,9 +797,9 @@ document.addEventListener(
 
 
     /*
-      ====================================
-      VIDEO TERMINADO
-      ====================================
+      =====================================
+      VIDEO FINALIZADO
+      =====================================
     */
 
 
@@ -789,7 +810,9 @@ document.addEventListener(
 
         audio.pause();
 
-        audio.currentTime = 0;
+
+        audio.currentTime =
+          0;
 
 
         plane.setAttribute(
@@ -808,9 +831,9 @@ document.addEventListener(
 
 
     /*
-      ====================================
-      DIAGNÓSTICO
-      ====================================
+      =====================================
+      LOGS DE RENDIMIENTO
+      =====================================
     */
 
 
@@ -820,12 +843,10 @@ document.addEventListener(
 
 
         console.log(
-          "VIDEO:",
+          "Video listo:",
           video.videoWidth,
           "x",
-          video.videoHeight,
-          "duración:",
-          video.duration
+          video.videoHeight
         );
 
 
