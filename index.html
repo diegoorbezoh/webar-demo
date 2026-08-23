@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es">
+
 <head>
+
   <meta charset="utf-8">
 
   <meta
@@ -8,57 +10,75 @@
     content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"
   >
 
-  <title>WebAR - Video con audio</title>
+  <title>WebAR - Video + Audio</title>
 
-  <!-- A-Frame -->
+
+  <!-- A-FRAME -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
-  <!-- MindAR -->
+
+  <!-- MINDAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
+
   <style>
+
     html,
     body {
+
       margin: 0;
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
       background: transparent !important;
+
       font-family: Arial, sans-serif;
+
     }
 
-    a-scene {
-      position: fixed !important;
-      inset: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      background: transparent !important;
-    }
 
+    a-scene,
     .a-canvas {
+
       background: transparent !important;
+
     }
+
 
     /*
-      Safari/iPhone:
-      dejamos el elemento video técnicamente visible,
-      pero con 1px y casi transparente.
+      VIDEO VISUAL
+
+      Siempre permanece muted.
+      Safari puede usarlo como textura WebGL
+      sin restricciones de autoplay.
     */
-    #arVideo {
+
+    #videoVisual {
+
       position: fixed;
-      width: 1px;
-      height: 1px;
+
+      width: 2px;
+      height: 2px;
+
       left: 0;
       bottom: 0;
+
       opacity: 0.01;
-      z-index: -1;
+
       pointer-events: none;
+
     }
 
+
     #estado {
+
       position: fixed;
 
       top: max(10px, env(safe-area-inset-top));
+
       left: 10px;
       right: 10px;
 
@@ -66,7 +86,7 @@
 
       padding: 11px 14px;
 
-      background: rgba(255,255,255,.92);
+      background: rgba(255,255,255,.93);
 
       color: #111;
 
@@ -76,10 +96,13 @@
 
       font-size: 14px;
 
-      box-shadow: 0 3px 16px rgba(0,0,0,.12);
+      box-shadow: 0 3px 16px rgba(0,0,0,.15);
+
     }
 
+
     #activarAudio {
+
       position: fixed;
 
       left: 50%;
@@ -96,34 +119,68 @@
       padding: 14px 22px;
 
       font-size: 16px;
-      font-weight: 700;
+
+      font-weight: bold;
 
       background: white;
+
       color: #111;
 
-      box-shadow: 0 5px 20px rgba(0,0,0,.22);
+      box-shadow: 0 5px 20px rgba(0,0,0,.25);
 
       cursor: pointer;
+
     }
 
+
     #activarAudio.oculto {
+
       display: none;
+
     }
+
   </style>
+
 </head>
+
+
 
 <body>
 
+
   <div id="estado">
+
     Abriendo cámara...
+
   </div>
 
+
+
   <button id="activarAudio">
+
     🔊 Activar sonido
+
   </button>
 
 
+
+  <!--
+    AUDIO INDEPENDIENTE
+
+    Utilizamos el mismo MP4,
+    pero este elemento únicamente maneja sonido.
+  -->
+
+  <audio
+    id="audioAR"
+    src="./video-ar-5s.mp4"
+    preload="auto">
+  </audio>
+
+
+
   <a-scene
+
     id="scene"
 
     mindar-image="
@@ -146,68 +203,101 @@
       alpha: true;
     "
 
-    loading-screen="enabled: false"
+    loading-screen="enabled:false"
 
-    vr-mode-ui="enabled: false"
+    vr-mode-ui="enabled:false"
 
-    device-orientation-permission-ui="enabled: false"
+    device-orientation-permission-ui="enabled:false"
+
   >
 
 
+
     <!-- RECURSOS -->
+
     <a-assets timeout="15000">
 
+
+      <!--
+        IMPORTANTE:
+
+        Este video SIEMPRE está muted.
+        Nunca lo desmuteamos.
+      -->
+
       <video
-        id="arVideo"
+
+        id="videoVisual"
+
         src="./video-ar-5s.mp4"
+
         preload="auto"
+
+        muted
+
         playsinline
+
         webkit-playsinline
-        crossorigin="anonymous">
-      </video>
+
+        crossorigin="anonymous"
+
+      ></video>
+
 
     </a-assets>
 
 
+
     <!-- CÁMARA -->
+
     <a-camera
+
       position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+
+      look-controls="enabled:false"
+
+    ></a-camera>
+
 
 
     <!-- TARGET -->
+
     <a-entity
+
       id="target"
-      mindar-image-target="targetIndex: 0"
+
+      mindar-image-target="targetIndex:0"
+
     >
 
-      <!--
-        VIDEO AR
 
-        Usamos a-video directamente.
-        Esto suele funcionar mejor en Safari/iPhone.
-      -->
-      <a-video
+
+      <!-- VIDEO SUPERPUESTO -->
+
+      <a-plane
+
         id="videoPlane"
-
-        src="#arVideo"
 
         visible="false"
 
         position="0 0 0.02"
 
         width="1"
+
         height="1.23"
 
         material="
-          shader: flat;
-          side: double;
+          src:#videoVisual;
+          shader:flat;
+          side:double;
         "
-      >
-      </a-video>
+
+      ></a-plane>
+
+
 
     </a-entity>
+
 
   </a-scene>
 
@@ -215,169 +305,296 @@
 
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
 
-  const scene =
-    document.querySelector("#scene");
-
-  const target =
-    document.querySelector("#target");
-
-  const video =
-    document.querySelector("#arVideo");
-
-  const videoPlane =
-    document.querySelector("#videoPlane");
-
-  const estado =
-    document.querySelector("#estado");
-
-  const botonAudio =
-    document.querySelector("#activarAudio");
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
 
 
-  let audioActivado = false;
+    const scene =
+      document.querySelector("#scene");
+
+
+    const target =
+      document.querySelector("#target");
+
+
+    const video =
+      document.querySelector("#videoVisual");
+
+
+    const audio =
+      document.querySelector("#audioAR");
+
+
+    const plane =
+      document.querySelector("#videoPlane");
+
+
+    const estado =
+      document.querySelector("#estado");
+
+
+    const botonAudio =
+      document.querySelector("#activarAudio");
+
+
+    let audioActivado = false;
+
+    let targetVisible = false;
 
 
 
-  /*
-    ==========================================
-    ASEGURAR VIDEO REAL DE CÁMARA COMO FONDO
-    ==========================================
-  */
-
-  function asegurarFondoCamara() {
-
-    const videos =
-      document.querySelectorAll("video");
+    /*
+      ====================================
+      VIDEO DE CÁMARA COMO FONDO
+      ====================================
+    */
 
 
-    videos.forEach((v) => {
+    function ajustarCamara() {
 
-      if (v.id !== "arVideo") {
 
-        Object.assign(v.style, {
+      document
+        .querySelectorAll("video")
+        .forEach((v) => {
 
-          position: "fixed",
 
-          top: "0",
+          /*
+            Ignoramos nuestro video AR.
+          */
 
-          left: "0",
+          if (v.id !== "videoVisual") {
 
-          width: "100vw",
 
-          height: "100vh",
+            Object.assign(
+              v.style,
+              {
 
-          objectFit: "cover",
+                position: "fixed",
 
-          zIndex: "0",
+                top: "0",
 
-          display: "block",
+                left: "0",
 
-          opacity: "1",
+                width: "100vw",
 
-          background: "transparent"
+                height: "100vh",
+
+                objectFit: "cover",
+
+                zIndex: "0",
+
+                opacity: "1",
+
+                display: "block"
+
+              }
+            );
+
+
+          }
+
 
         });
 
+
+
+      const canvas =
+        document.querySelector(
+          ".a-canvas"
+        );
+
+
+      if (canvas) {
+
+
+        canvas.style.background =
+          "transparent";
+
+
+        canvas.style.zIndex =
+          "1";
+
+
       }
 
-    });
-
-
-    const canvas =
-      document.querySelector(".a-canvas");
-
-
-    if (canvas) {
-
-      canvas.style.background =
-        "transparent";
-
-      canvas.style.zIndex =
-        "1";
 
     }
 
-  }
 
 
-
-  /*
-    ==========================================
-    MINDAR LISTO
-    ==========================================
-  */
-
-  scene.addEventListener(
-    "arReady",
-    () => {
-
-      asegurarFondoCamara();
-
-      setTimeout(
-        asegurarFondoCamara,
-        300
-      );
-
-      setTimeout(
-        asegurarFondoCamara,
-        1000
-      );
-
-      estado.textContent =
-        "📷 Activa sonido y apunta a la imagen";
-
-    }
-  );
+    /*
+      ====================================
+      MINDAR LISTO
+      ====================================
+    */
 
 
-
-  scene.addEventListener(
-    "arError",
-    () => {
-
-      estado.textContent =
-        "❌ No se pudo iniciar la cámara";
-
-    }
-  );
+    scene.addEventListener(
+      "arReady",
+      () => {
 
 
-
-  /*
-    ==========================================
-    DESBLOQUEAR AUDIO Y VIDEO EN IOS
-    ==========================================
-  */
-
-  botonAudio.addEventListener(
-    "click",
-    async () => {
-
-      try {
-
-        /*
-          Importante en iOS:
-          este play ocurre como consecuencia directa
-          de un toque del usuario.
-        */
-
-        video.muted = false;
-        video.volume = 1;
-
-        await video.play();
+        ajustarCamara();
 
 
-        /*
-          Dejamos correr unos milisegundos para que
-          Safari inicialice correctamente el video.
-        */
-
-        await new Promise(
-          resolve =>
-            setTimeout(resolve, 100)
+        setTimeout(
+          ajustarCamara,
+          300
         );
+
+
+        setTimeout(
+          ajustarCamara,
+          1000
+        );
+
+
+        estado.textContent =
+          "📷 Apunta a la imagen";
+
+
+      }
+    );
+
+
+
+    scene.addEventListener(
+      "arError",
+      () => {
+
+
+        estado.textContent =
+          "❌ Error iniciando cámara";
+
+
+      }
+    );
+
+
+
+    /*
+      ====================================
+      ACTIVAR AUDIO
+
+      Aquí SOLO desbloqueamos <audio>.
+      No tocamos el video AR.
+      ====================================
+    */
+
+
+    botonAudio.addEventListener(
+      "click",
+      async () => {
+
+
+        try {
+
+
+          audio.volume = 1;
+
+
+          /*
+            Safari necesita que play()
+            ocurra como consecuencia directa
+            del toque del usuario.
+          */
+
+
+          await audio.play();
+
+
+          /*
+            Lo detenemos inmediatamente.
+
+            Ya quedó desbloqueado.
+          */
+
+
+          audio.pause();
+
+
+          audio.currentTime = 0;
+
+
+          audioActivado = true;
+
+
+          botonAudio.classList.add(
+            "oculto"
+          );
+
+
+          estado.textContent =
+            "✅ Sonido activado · apunta a la imagen";
+
+
+          /*
+            Si el target ya estaba siendo visto
+            cuando activamos audio,
+            empezamos el sonido sincronizado.
+          */
+
+
+          if (targetVisible) {
+
+
+            audio.currentTime =
+              video.currentTime;
+
+
+            await audio.play();
+
+
+          }
+
+
+        }
+
+        catch (error) {
+
+
+          console.error(
+            "Error desbloqueando audio:",
+            error
+          );
+
+
+          estado.textContent =
+            "⚠️ No se pudo activar sonido";
+
+
+        }
+
+
+      }
+    );
+
+
+
+    /*
+      ====================================
+      TARGET DETECTADO
+      ====================================
+    */
+
+
+    target.addEventListener(
+      "targetFound",
+      async () => {
+
+
+        targetVisible = true;
+
+
+        estado.textContent =
+          "✅ Imagen detectada";
+
+
+        /*
+          Reiniciamos video visual.
+        */
 
 
         video.pause();
@@ -385,238 +602,244 @@ document.addEventListener("DOMContentLoaded", () => {
         video.currentTime = 0;
 
 
-        audioActivado = true;
+        /*
+          MUY IMPORTANTE:
+
+          El video visual SIEMPRE muted.
+        */
 
 
-        botonAudio.classList.add(
-          "oculto"
-        );
-
-
-        estado.textContent =
-          "✅ Sonido activado · apunta a la imagen";
-
-
-      }
-
-      catch (error) {
-
-        console.error(
-          "Error activando video/audio:",
-          error
-        );
-
-
-        estado.textContent =
-          "⚠️ No se pudo activar el video";
-
-      }
-
-    }
-  );
-
-
-
-  /*
-    ==========================================
-    TARGET DETECTADO
-    ==========================================
-  */
-
-  target.addEventListener(
-    "targetFound",
-    async () => {
-
-      estado.textContent =
-        "✅ Imagen detectada";
-
-
-      try {
-
-        video.pause();
-
-        video.currentTime = 0;
+        video.muted = true;
 
 
         /*
-          Audio según estado.
+          Mostramos plano AR.
         */
 
-        if (audioActivado) {
 
-          video.muted = false;
-          video.volume = 1;
-
-        }
-
-        else {
-
-          video.muted = true;
-
-        }
-
-
-        /*
-          Primero mostramos el plano.
-        */
-
-        videoPlane.setAttribute(
+        plane.setAttribute(
           "visible",
           true
         );
 
 
-        /*
-          Después reproducimos.
-        */
-
-        await video.play();
+        try {
 
 
-        /*
-          Forzamos actualización de textura.
-          Ayuda especialmente en Safari.
-        */
-
-        const mesh =
-          videoPlane.getObject3D("mesh");
+          /*
+            Este autoplay debería funcionar
+            porque el video está muted.
+          */
 
 
-        if (
-          mesh &&
-          mesh.material &&
-          mesh.material.map
-        ) {
+          await video.play();
 
-          mesh.material.map.needsUpdate =
-            true;
+
+
+          /*
+            Si el audio está habilitado,
+            lo iniciamos al mismo tiempo.
+          */
+
+
+          if (audioActivado) {
+
+
+            audio.pause();
+
+            audio.currentTime = 0;
+
+
+            try {
+
+
+              await audio.play();
+
+
+            }
+
+            catch (audioError) {
+
+
+              console.log(
+                "Audio bloqueado:",
+                audioError
+              );
+
+
+            }
+
+
+          }
+
+
+
+          /*
+            Forzar actualización de textura.
+          */
+
+
+          const mesh =
+            plane.getObject3D(
+              "mesh"
+            );
+
+
+          if (
+            mesh &&
+            mesh.material &&
+            mesh.material.map
+          ) {
+
+
+            mesh.material.map.needsUpdate =
+              true;
+
+
+          }
+
+
+
+          estado.textContent =
+            audioActivado
+              ? "🔊 Reproduciendo video AR"
+              : "▶️ Reproduciendo video AR";
+
+
+        }
+
+        catch (error) {
+
+
+          console.error(
+            "Error reproduciendo video:",
+            error
+          );
+
+
+          plane.setAttribute(
+            "visible",
+            false
+          );
+
+
+          estado.textContent =
+            "❌ Error reproduciendo video";
+
 
         }
 
 
-        estado.textContent =
-          audioActivado
-            ? "🔊 Reproduciendo video AR"
-            : "🔇 Reproduciendo video AR";
-
-
       }
+    );
 
-      catch (error) {
 
-        console.error(
-          "Error reproduciendo video:",
-          error
+
+    /*
+      ====================================
+      TARGET PERDIDO
+      ====================================
+    */
+
+
+    target.addEventListener(
+      "targetLost",
+      () => {
+
+
+        targetVisible = false;
+
+
+        video.pause();
+
+        audio.pause();
+
+
+        video.currentTime = 0;
+
+        audio.currentTime = 0;
+
+
+        plane.setAttribute(
+          "visible",
+          false
         );
 
 
         estado.textContent =
-          "⚠️ No se pudo reproducir el video";
+          "📷 Apunta nuevamente a la imagen";
+
 
       }
-
-    }
-  );
+    );
 
 
 
-  /*
-    ==========================================
-    TARGET PERDIDO
-    ==========================================
-  */
-
-  target.addEventListener(
-    "targetLost",
-    () => {
-
-      video.pause();
-
-      video.currentTime = 0;
+    /*
+      ====================================
+      VIDEO TERMINADO
+      ====================================
+    */
 
 
-      videoPlane.setAttribute(
-        "visible",
-        false
-      );
+    video.addEventListener(
+      "ended",
+      () => {
 
 
-      estado.textContent =
-        "📷 Apunta nuevamente a la imagen";
+        audio.pause();
 
-    }
-  );
+        audio.currentTime = 0;
 
 
-
-  /*
-    ==========================================
-    VIDEO TERMINADO
-    ==========================================
-  */
-
-  video.addEventListener(
-    "ended",
-    () => {
-
-      videoPlane.setAttribute(
-        "visible",
-        false
-      );
+        plane.setAttribute(
+          "visible",
+          false
+        );
 
 
-      estado.textContent =
-        "✅ Video terminado";
+        estado.textContent =
+          "✅ Video terminado";
 
-    }
-  );
+
+      }
+    );
 
 
 
-  /*
-    ==========================================
-    DIAGNÓSTICO
-    ==========================================
-  */
-
-  video.addEventListener(
-    "loadedmetadata",
-    () => {
-
-      console.log(
-        "Video cargado:",
-        video.videoWidth,
-        "x",
-        video.videoHeight,
-        "duración:",
-        video.duration
-      );
-
-    }
-  );
+    /*
+      ====================================
+      DIAGNÓSTICO
+      ====================================
+    */
 
 
-  video.addEventListener(
-    "error",
-    () => {
-
-      console.error(
-        "Error cargando MP4:",
-        video.error
-      );
+    video.addEventListener(
+      "loadedmetadata",
+      () => {
 
 
-      estado.textContent =
-        "❌ Error cargando video-ar-5s.mp4";
+        console.log(
+          "VIDEO:",
+          video.videoWidth,
+          "x",
+          video.videoHeight,
+          "duración:",
+          video.duration
+        );
 
-    }
-  );
+
+      }
+    );
 
 
-});
+  }
+);
+
 
 </script>
 
 
 </body>
+
 </html>
