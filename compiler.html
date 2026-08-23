@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Generar targets.mind</title>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <style>
+    body{font-family:Arial,sans-serif;background:#f4f5f7;margin:0;padding:32px;color:#151515}
+    .card{max-width:680px;margin:auto;background:#fff;padding:28px;border-radius:18px;box-shadow:0 8px 30px rgba(0,0,0,.1)}
+    img{max-width:280px;display:block;margin:18px auto;border-radius:10px}
+    button{border:0;border-radius:10px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}
+    #barra{height:12px;background:#eee;border-radius:8px;overflow:hidden;margin-top:18px}
+    #progreso{height:100%;width:0%;background:#222}
+    #estado{margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Generar targets.mind</h1>
+    <p>Esto se hace una sola vez en la laptop. Después el celular ya no tendrá que compilar la imagen.</p>
+    <img src="./target-persona.png" alt="Imagen objetivo">
+    <button id="generar">Generar targets.mind</button>
+    <div id="barra"><div id="progreso"></div></div>
+    <div id="estado">Listo para comenzar.</div>
+  </div>
+
+<script>
+  const btn = document.querySelector("#generar");
+  const estado = document.querySelector("#estado");
+  const progreso = document.querySelector("#progreso");
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    estado.textContent = "Cargando imagen…";
+
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = "./target-persona.png?" + Date.now();
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const compiler = new MINDAR.IMAGE.Compiler();
+
+      estado.textContent = "Compilando imagen…";
+
+      await compiler.compileImageTargets([img], (p) => {
+        const n = Math.max(0, Math.min(100, Math.round(p)));
+        progreso.style.width = n + "%";
+        estado.textContent = "Compilando… " + n + "%";
+      });
+
+      const buffer = await compiler.exportData();
+      const blob = new Blob([buffer], {type: "application/octet-stream"});
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "targets.mind";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+      progreso.style.width = "100%";
+      estado.innerHTML = "<b>✅ Listo.</b> Se descargó <code>targets.mind</code>. Súbelo a la raíz de tu repositorio.";
+    } catch (e) {
+      console.error(e);
+      estado.textContent = "❌ Error al compilar. Recarga e inténtalo nuevamente.";
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

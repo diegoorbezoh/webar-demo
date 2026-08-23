@@ -2,117 +2,210 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-  <title>WebAR Persona + Video</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>WebAR - Video sobre imagen</title>
 
-  <!-- MindAR compiler + A-Frame integration -->
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <link rel="preconnect" href="https://aframe.io">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preload" href="./targets.mind" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="./video-ar-5s.mp4" as="video" type="video/mp4">
+
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:Arial,sans-serif}
-    #estado{position:fixed;z-index:9999;top:10px;left:10px;right:10px;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.92);color:#111;text-align:center;font-size:14px}
-    #progreso{font-weight:700}
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent !important;
+      font-family: Arial, sans-serif;
+    }
+
+    /* La escena WebGL debe ser transparente para ver la cámara detrás */
+    a-scene {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      z-index: 1 !important;
+      background: transparent !important;
+    }
+
+    .a-canvas {
+      background: transparent !important;
+      z-index: 1 !important;
+    }
+
+    /* Solo es el archivo usado como textura del plano AR */
+    #arVideo {
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      width: 2px;
+      height: 2px;
+      opacity: 0.01;
+      pointer-events: none;
+    }
+
+    #estado {
+      position: fixed;
+      z-index: 9999;
+      top: max(10px, env(safe-area-inset-top));
+      left: 10px;
+      right: 10px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.92);
+      color: #111;
+      text-align: center;
+      font-size: 14px;
+      box-shadow: 0 3px 16px rgba(0,0,0,.12);
+    }
   </style>
 </head>
+
 <body>
-  <div id="estado">Preparando reconocimiento de imagen… <span id="progreso">0%</span></div>
+  <div id="estado">Abriendo cámara…</div>
+
+  <a-scene
+    id="scene"
+    mindar-image="
+      imageTargetSrc: ./targets.mind;
+      autoStart: true;
+      uiLoading: no;
+      uiScanning: no;
+      uiError: no;
+      warmupTolerance: 5;
+      missTolerance: 5;
+    "
+    embedded
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: true;"
+    loading-screen="enabled: false"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets timeout="10000">
+      <video
+        id="arVideo"
+        src="./video-ar-5s.mp4"
+        preload="auto"
+        muted
+        playsinline
+        webkit-playsinline
+        crossorigin="anonymous">
+      </video>
+    </a-assets>
+
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
+
+    <a-entity
+      id="target"
+      mindar-image-target="targetIndex: 0">
+
+      <a-plane
+        id="videoPlane"
+        visible="false"
+        position="0 0 0.015"
+        width="1"
+        height="1.234375"
+        material="src: #arVideo; shader: flat; side: double;">
+      </a-plane>
+
+    </a-entity>
+  </a-scene>
 
   <script>
-  (async () => {
-    const estado = document.querySelector('#estado');
-    const progreso = document.querySelector('#progreso');
+    document.addEventListener("DOMContentLoaded", () => {
+      const scene = document.querySelector("#scene");
+      const target = document.querySelector("#target");
+      const video = document.querySelector("#arVideo");
+      const plane = document.querySelector("#videoPlane");
+      const estado = document.querySelector("#estado");
 
-    try {
-      // 1) Cargar la imagen objetivo
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = './target-persona.png';
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-
-      // 2) Compilar la imagen en el propio celular
-      const compiler = new MINDAR.IMAGE.Compiler();
-      await compiler.compileImageTargets([img], (p) => {
-        progreso.textContent = Math.round(p) + '%';
-      });
-      const buffer = await compiler.exportData();
-      const mindUrl = URL.createObjectURL(new Blob([buffer], {type:'application/octet-stream'}));
-
-      estado.innerHTML = 'Abriendo cámara…';
-
-      // 3) Crear la escena SOLO después de tener el target compilado
-      const scene = document.createElement('a-scene');
-      scene.setAttribute('mindar-image', `imageTargetSrc: ${mindUrl}; autoStart: true; uiScanning: no; uiLoading: no; uiError: yes;`);
-      scene.setAttribute('color-space', 'sRGB');
-      scene.setAttribute('renderer', 'colorManagement: true; physicallyCorrectLights: true; alpha: true;');
-      scene.setAttribute('vr-mode-ui', 'enabled: false');
-      scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-      scene.setAttribute('embedded', '');
-
-      scene.innerHTML = `
-        <a-assets timeout="15000">
-          <video id="arVideo" src="./video-ar-5s.mp4" preload="auto" muted playsinline webkit-playsinline crossorigin="anonymous"></video>
-        </a-assets>
-
-        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
-        <a-entity id="target" mindar-image-target="targetIndex: 0">
-          <a-plane
-            id="videoPlane"
-            position="0 0 0.02"
-            width="1"
-            height="1.234"
-            material="src: #arVideo; shader: flat; transparent: true;">
-          </a-plane>
-        </a-entity>
-      `;
-
-      document.body.appendChild(scene);
-
-      scene.addEventListener('loaded', () => {
-        const target = document.querySelector('#target');
-        const video = document.querySelector('#arVideo');
-
-        estado.innerHTML = '📷 Apunta la cámara a la imagen de la laptop';
-
-        target.addEventListener('targetFound', async () => {
-          estado.innerHTML = '✅ Imagen detectada · reproduciendo video';
-          try {
-            video.currentTime = 0;
-            video.muted = true;
-            await video.play();
-          } catch (e) {
-            estado.innerHTML = '✅ Imagen detectada · toca la pantalla para iniciar el video';
-            const start = async () => {
-              try { await video.play(); } catch(_) {}
-              document.removeEventListener('click', start);
-              document.removeEventListener('touchstart', start);
-            };
-            document.addEventListener('click', start, {once:true});
-            document.addEventListener('touchstart', start, {once:true});
+      function asegurarFondoCamara() {
+        // MindAR crea un segundo <video> para el stream real de cámara.
+        // Lo dejamos a pantalla completa detrás del canvas AR.
+        document.querySelectorAll("video").forEach((v) => {
+          if (v.id !== "arVideo") {
+            Object.assign(v.style, {
+              position: "fixed",
+              top: "0",
+              left: "0",
+              width: "100vw",
+              height: "100vh",
+              objectFit: "cover",
+              zIndex: "0",
+              display: "block",
+              opacity: "1",
+              background: "transparent"
+            });
           }
         });
 
-        target.addEventListener('targetLost', () => {
-          video.pause();
-          video.currentTime = 0;
-          estado.innerHTML = '📷 Apunta nuevamente a la imagen';
-        });
+        const canvas = document.querySelector(".a-canvas");
+        if (canvas) {
+          canvas.style.background = "transparent";
+          canvas.style.zIndex = "1";
+        }
+      }
 
-        video.addEventListener('ended', () => {
-          estado.innerHTML = '✅ Video terminado · aleja y vuelve a apuntar para repetir';
-        });
+      scene.addEventListener("arReady", () => {
+        asegurarFondoCamara();
+        setTimeout(asegurarFondoCamara, 250);
+        setTimeout(asegurarFondoCamara, 1000);
+        estado.textContent = "📷 Apunta la cámara a la imagen de la laptop";
       });
 
-    } catch (err) {
-      console.error(err);
-      estado.innerHTML = '❌ Error preparando el tracking. Recarga la página.';
-    }
-  })();
+      scene.addEventListener("arError", () => {
+        estado.textContent = "❌ No se pudo iniciar la cámara. Revisa permisos y recarga.";
+      });
+
+      target.addEventListener("targetFound", async () => {
+        estado.textContent = "✅ Imagen detectada";
+        video.pause();
+        video.currentTime = 0;
+        video.muted = true;
+
+        try {
+          await video.play();
+          plane.setAttribute("visible", true);
+          estado.textContent = "▶️ Reproduciendo video AR";
+        } catch (err) {
+          plane.setAttribute("visible", false);
+          estado.textContent = "Toca la pantalla para iniciar el video";
+
+          const iniciar = async () => {
+            try {
+              await video.play();
+              plane.setAttribute("visible", true);
+              estado.textContent = "▶️ Reproduciendo video AR";
+            } catch (_) {}
+          };
+
+          document.addEventListener("click", iniciar, {once: true});
+          document.addEventListener("touchend", iniciar, {once: true});
+        }
+      });
+
+      target.addEventListener("targetLost", () => {
+        video.pause();
+        video.currentTime = 0;
+        plane.setAttribute("visible", false);
+        estado.textContent = "📷 Apunta nuevamente a la imagen";
+      });
+
+      video.addEventListener("ended", () => {
+        plane.setAttribute("visible", false);
+        estado.textContent = "✅ Video terminado · aleja y vuelve a enfocar para repetir";
+      });
+    });
   </script>
 </body>
 </html>

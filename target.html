@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Imagen objetivo WebAR</title>
   <style>
-    body{margin:0;min-height:100vh;background:#f4f4f4;font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center}
-    .wrap{width:min(1100px,94vw);display:grid;grid-template-columns:1.4fr .65fr;gap:28px;align-items:center}
-    .card{background:#fff;border-radius:18px;padding:25px;box-shadow:0 10px 35px rgba(0,0,0,.12);text-align:center}
-    .target{width:min(60vw,520px);max-width:100%;display:block;margin:auto}
-    .qr{width:min(26vw,250px);max-width:100%}
-    h1{margin:0 0 8px} p{line-height:1.4;color:#333}
+    body{margin:0;min-height:100vh;background:#f4f5f7;font-family:Arial,sans-serif;display:grid;place-items:center}
+    .wrap{width:min(1050px,94vw);display:grid;grid-template-columns:1.45fr .65fr;gap:28px;align-items:center}
+    .card{background:#fff;padding:26px;border-radius:18px;box-shadow:0 10px 35px rgba(0,0,0,.1);text-align:center}
+    .target{width:min(58vw,540px);max-width:100%;border-radius:8px}
+    .qr{width:min(28vw,250px);max-width:100%}
+    h1{margin-top:0}
+    p{line-height:1.45}
     @media(max-width:760px){.wrap{grid-template-columns:1fr}}
   </style>
 </head>
@@ -18,13 +19,16 @@
   <main class="wrap">
     <section class="card">
       <h1>Imagen objetivo</h1>
-      <p>Después de abrir la cámara WebAR, apunta a esta imagen.</p>
+      <p>Después de abrir la WebAR, apunta la cámara a esta imagen.</p>
       <img class="target" src="./target-persona.png" alt="Imagen objetivo">
     </section>
+
     <section class="card">
-      <h2>Escanea con tu celular</h2>
+      <h2>Escanea el QR</h2>
       <img class="qr" src="./qr-webar.png" alt="QR WebAR">
-      <p><b>1.</b> Escanea el QR<br><b>2.</b> Permite la cámara<br><b>3.</b> Apunta a la imagen</p>
+      <p><b>1.</b> Abre el enlace<br>
+      <b>2.</b> Permite la cámara<br>
+      <b>3.</b> Apunta a la imagen</p>
     </section>
   </main>
 </body>
