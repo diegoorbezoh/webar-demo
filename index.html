@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+  <title>Demo WebAR - Cuadro</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif}
+    .top{
+      position:fixed;z-index:20;top:12px;left:12px;right:12px;
+      background:rgba(255,255,255,.9);padding:10px 12px;border-radius:12px;
+      text-align:center;font-size:14px
+    }
+  </style>
+</head>
+<body>
+  <div class="top">Apunta la cámara a la imagen HIRO mostrada en tu laptop</div>
+
+  <a-scene
+    embedded
+    vr-mode-ui="enabled:false"
+    renderer="logarithmicDepthBuffer:true; antialias:true"
+    arjs="sourceType:webcam; debugUIEnabled:false;">
+
+    <a-marker preset="hiro">
+      <a-entity rotation="-90 0 0">
+
+        <!-- sombra -->
+        <a-plane
+          width="1.48" height="1.08"
+          position="0.04 -0.04 -0.01"
+          material="color:#000; opacity:.28; transparent:true">
+        </a-plane>
+
+        <!-- marco -->
+        <a-plane
+          width="1.45" height="1.05"
+          position="0 0 0"
+          material="color:#201914">
+        </a-plane>
+
+        <!-- passepartout -->
+        <a-plane
+          width="1.30" height="0.90"
+          position="0 0 0.01"
+          material="color:#f4efe8">
+        </a-plane>
+
+        <!-- obra -->
+        <a-plane
+          width="1.16" height="0.76"
+          position="0 0 0.02"
+          material="src:#art; side:double">
+        </a-plane>
+
+      </a-entity>
+    </a-marker>
+
+    <a-assets>
+      <img id="art" src="art.svg" />
+    </a-assets>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+</body>
+</html>
