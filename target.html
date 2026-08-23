@@ -1,27 +1,67 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Imagen objetivo - WebAR</title>
-  <style>
-    body{
-      margin:0;min-height:100vh;display:grid;place-items:center;
-      background:#f6f6f6;font-family:system-ui,sans-serif
-    }
-    .wrap{text-align:center}
-    img{
-      width:min(72vw,72vh);max-width:720px;
-      background:#fff;padding:24px;box-sizing:border-box;
-      box-shadow:0 8px 30px rgba(0,0,0,.12)
-    }
-    p{max-width:620px;margin:16px auto 0;color:#333}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WebAR - Imagen objetivo</title>
+<style>
+  body {
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f5f5f5;
+    font-family:Arial,system-ui,sans-serif;
+  }
+  .wrap {
+    width:min(1000px,94vw);
+    display:grid;
+    grid-template-columns:1.5fr .7fr;
+    gap:32px;
+    align-items:center;
+  }
+  .card {
+    background:white;
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 10px 35px rgba(0,0,0,.12);
+    text-align:center;
+  }
+  .marker {
+    width:min(62vw,620px);
+    max-width:100%;
+  }
+  .qr {
+    width:min(28vw,260px);
+    max-width:100%;
+  }
+  h1 {font-size:28px;margin:0 0 8px}
+  h2 {font-size:20px;margin:0 0 14px}
+  p {color:#444;line-height:1.45}
+  .step {font-weight:700;color:#111}
+  @media (max-width:760px) {
+    .wrap {grid-template-columns:1fr}
+  }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png" alt="Marcador HIRO">
-    <p>Deja esta imagen visible en la laptop. Abre <b>/index.html</b> en tu celular y apunta la cámara aquí.</p>
-  </div>
+  <main class="wrap">
+    <section class="card">
+      <h1>Imagen objetivo</h1>
+      <p>Después de abrir la WebAR en el celular, apunta la cámara a esta imagen.</p>
+      <img class="marker"
+           src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/hiro.png"
+           alt="Marcador HIRO">
+    </section>
+
+    <section class="card">
+      <h2>1. Escanea este QR</h2>
+      <img class="qr" src="qr-webar.png" alt="QR para abrir WebAR">
+      <p class="step">2. Abre el enlace</p>
+      <p class="step">3. Permite la cámara</p>
+      <p class="step">4. Apunta al marcador</p>
+    </section>
+  </main>
 </body>
 </html>
