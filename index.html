@@ -2,69 +2,210 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
   <title>Demo WebAR - Cuadro</title>
 
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
 
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;font-family:system-ui,sans-serif}
-    .top{
-      position:fixed;z-index:20;top:12px;left:12px;right:12px;
-      background:rgba(255,255,255,.9);padding:10px 12px;border-radius:12px;
-      text-align:center;font-size:14px
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+
+      /*
+        IMPORTANTE:
+        No usamos fondo negro.
+        Dejamos todo transparente para que el video
+        de la cámara pueda verse detrás del canvas 3D.
+      */
+      background: transparent !important;
+    }
+
+    /*
+      A-Frame crea internamente un canvas WebGL.
+      Lo hacemos transparente.
+    */
+    canvas,
+    .a-canvas {
+      background: transparent !important;
+    }
+
+    /*
+      Texto superior de ayuda.
+    */
+    .mensaje {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+
+      z-index: 9999;
+
+      padding: 10px 14px;
+
+      background: rgba(255, 255, 255, 0.90);
+      color: #111;
+
+      border-radius: 12px;
+
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      text-align: center;
     }
   </style>
 </head>
+
 <body>
-  <div class="top">Apunta la cámara a la imagen HIRO mostrada en tu laptop</div>
+
+  <div class="mensaje">
+    Apunta la cámara al marcador HIRO mostrado en tu laptop
+  </div>
 
   <a-scene
+
     embedded
-    vr-mode-ui="enabled:false"
-    renderer="logarithmicDepthBuffer:true; antialias:true"
-    arjs="sourceType:webcam; debugUIEnabled:false;">
 
-    <a-marker preset="hiro">
-      <a-entity rotation="-90 0 0">
+    vr-mode-ui="enabled: false"
 
-        <!-- sombra -->
-        <a-plane
-          width="1.48" height="1.08"
-          position="0.04 -0.04 -0.01"
-          material="color:#000; opacity:.28; transparent:true">
-        </a-plane>
+    /*
+      alpha:true hace que el canvas WebGL sea transparente.
+      Así la cámara real queda visible detrás.
+    */
+    renderer="
+      alpha: true;
+      antialias: true;
+      logarithmicDepthBuffer: true;
+    "
 
-        <!-- marco -->
-        <a-plane
-          width="1.45" height="1.05"
-          position="0 0 0"
-          material="color:#201914">
-        </a-plane>
+    /*
+      sourceType:webcam = usa la cámara del celular.
+      debugUIEnabled:false = oculta controles técnicos.
+    */
+    arjs="
+      sourceType: webcam;
+      debugUIEnabled: false;
+      detectionMode: mono;
+    "
+  >
 
-        <!-- passepartout -->
-        <a-plane
-          width="1.30" height="0.90"
-          position="0 0 0.01"
-          material="color:#f4efe8">
-        </a-plane>
-
-        <!-- obra -->
-        <a-plane
-          width="1.16" height="0.76"
-          position="0 0 0.02"
-          material="src:#art; side:double">
-        </a-plane>
-
-      </a-entity>
-    </a-marker>
-
+    <!--
+      Aquí cargamos la imagen que aparecerá
+      como cuadro virtual.
+    -->
     <a-assets>
-      <img id="art" src="art.svg" />
+
+      <img
+        id="art"
+        src="art.svg"
+      />
+
     </a-assets>
 
+
+    <!--
+      Marcador HIRO.
+
+      Cuando AR.js detecte este marcador,
+      todo lo que esté dentro aparecerá
+      superpuesto sobre él.
+    -->
+    <a-marker preset="hiro">
+
+
+      <!--
+        Giramos el contenido para que quede
+        correctamente orientado respecto al marcador.
+      -->
+      <a-entity rotation="-90 0 0">
+
+
+        <!-- SOMBRA -->
+
+        <a-plane
+
+          width="1.48"
+          height="1.08"
+
+          position="0.04 -0.04 -0.01"
+
+          material="
+            color: #000000;
+            opacity: 0.25;
+            transparent: true;
+          "
+
+        ></a-plane>
+
+
+        <!-- MARCO EXTERIOR -->
+
+        <a-plane
+
+          width="1.45"
+          height="1.05"
+
+          position="0 0 0"
+
+          material="
+            color: #201914;
+          "
+
+        ></a-plane>
+
+
+        <!-- PASPARTÚ / BORDE INTERIOR -->
+
+        <a-plane
+
+          width="1.30"
+          height="0.90"
+
+          position="0 0 0.01"
+
+          material="
+            color: #f4efe8;
+          "
+
+        ></a-plane>
+
+
+        <!-- IMAGEN DEL CUADRO -->
+
+        <a-plane
+
+          width="1.16"
+          height="0.76"
+
+          position="0 0 0.02"
+
+          material="
+            src: #art;
+            side: double;
+          "
+
+        ></a-plane>
+
+
+      </a-entity>
+
+    </a-marker>
+
+
+    <!--
+      Cámara virtual de A-Frame.
+    -->
     <a-entity camera></a-entity>
+
+
   </a-scene>
+
 </body>
 </html>
