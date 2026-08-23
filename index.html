@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="es">
+
 <head>
+
   <meta charset="utf-8">
 
   <meta
@@ -10,66 +12,117 @@
 
   <title>WebAR - Chispa</title>
 
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 
+
+  <!-- AR.js -->
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
 
+
   <style>
+
     html,
     body {
+
       margin: 0;
+
       width: 100%;
       height: 100%;
+
       overflow: hidden;
+
       background: transparent !important;
+
     }
+
 
     canvas,
     .a-canvas {
+
       background: transparent !important;
+
     }
 
-    .mensaje {
+
+    #estado {
+
       position: fixed;
+
       top: 10px;
       left: 10px;
       right: 10px;
 
       z-index: 9999;
 
-      padding: 10px;
+      padding: 12px;
 
-      background: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.92);
 
       border-radius: 12px;
 
       font-family: Arial, sans-serif;
+
       text-align: center;
+
+      font-size: 14px;
+
+      color: #111;
+
     }
+
   </style>
+
+
 
   <script>
 
-    AFRAME.registerComponent("chispa-animation", {
+    AFRAME.registerComponent("chispa-marker", {
 
       init: function () {
 
         const marker = this.el;
 
-        marker.addEventListener("markerFound", () => {
+        const estado = document.querySelector("#estado");
 
-          const foto = document.querySelector("#chispaAR");
+
+        marker.addEventListener("markerFound", function () {
+
+          console.log("CHISPA DETECTADA");
+
+          estado.innerHTML = "✅ Chispa detectada";
+
+
+          const imagen = document.querySelector("#chispaAR");
+
 
           /*
-            Reiniciamos la animación cada vez
-            que se detecta la foto.
+            Reiniciar estado
           */
 
-          foto.setAttribute("scale", "0.05 0.05 0.05");
-          foto.setAttribute("position", "0 0.1 0");
-          foto.setAttribute("rotation", "-90 0 -12");
+          imagen.setAttribute(
+            "scale",
+            "0.05 0.05 0.05"
+          );
 
-          foto.emit("chispaStart");
+
+          /*
+            Lanzar animaciones
+          */
+
+          imagen.emit("aparecer");
+
+        });
+
+
+
+        marker.addEventListener("markerLost", function () {
+
+          console.log("CHISPA PERDIDA");
+
+          estado.innerHTML =
+            "🐶 Apunta la cámara a la imagen de Chispa";
 
         });
 
@@ -79,13 +132,20 @@
 
   </script>
 
+
 </head>
+
+
 
 <body>
 
-  <div class="mensaje">
-    Apunta la cámara a la imagen de Chispa 🐶
+
+  <div id="estado">
+
+    🐶 Apunta la cámara a la imagen de Chispa
+
   </div>
+
 
 
   <a-scene
@@ -104,38 +164,86 @@
       sourceType:webcam;
       debugUIEnabled:false;
       detectionMode:mono;
+      maxDetectionRate:60;
     "
 
   >
+
+
+
+    <!-- ========================= -->
+    <!-- RECURSOS -->
+    <!-- ========================= -->
 
 
     <a-assets>
 
       <img
         id="chispa"
-        src="chispa.png"
+        src="./chispa.png"
+        crossorigin="anonymous"
       >
 
     </a-assets>
 
 
 
-    <!-- MARCADOR PERSONALIZADO -->
+    <!-- ========================= -->
+    <!-- MARCADOR CHISPA -->
+    <!-- ========================= -->
+
 
     <a-marker
 
+      id="markerChispa"
+
       type="pattern"
 
-      url="pattern-chispa.patt"
+      url="./pattern-chispa.patt"
 
-      chispa-animation
+      chispa-marker
+
+      smooth="true"
+
+      smoothCount="10"
+
+      smoothTolerance="0.01"
+
+      smoothThreshold="5"
 
     >
 
 
-      <!--
-        FOTO DE CHISPA QUE APARECE EN AR
-      -->
+
+      <!-- ========================= -->
+      <!-- SOMBRA -->
+      <!-- ========================= -->
+
+
+      <a-circle
+
+        radius="0.45"
+
+        position="0 0.02 0"
+
+        rotation="-90 0 0"
+
+        scale="1 0.45 1"
+
+        material="
+          color:#000000;
+          opacity:0.20;
+          transparent:true;
+        "
+
+      ></a-circle>
+
+
+
+      <!-- ========================= -->
+      <!-- FOTO DE CHISPA -->
+      <!-- ========================= -->
+
 
       <a-image
 
@@ -147,7 +255,7 @@
 
         height="1"
 
-        position="0 0.1 0"
+        position="0 0.05 0"
 
         rotation="-90 0 0"
 
@@ -155,40 +263,86 @@
 
 
         animation__scale="
+
           property: scale;
+
           from: 0.05 0.05 0.05;
+
           to: 1 1 1;
+
           dur: 900;
+
           easing: easeOutElastic;
-          startEvents: chispaStart;
+
+          startEvents: aparecer;
+
         "
 
 
-        animation__position="
+        animation__subir="
+
           property: position;
-          from: 0 0.1 0;
-          to: 0 0.55 0;
-          dur: 1000;
+
+          from: 0 0.05 0;
+
+          to: 0 0.15 0;
+
+          dur: 900;
+
           easing: easeOutQuad;
-          startEvents: chispaStart;
+
+          startEvents: aparecer;
+
         "
 
 
-        animation__rotation="
+        animation__giro="
+
           property: rotation;
+
           from: -90 0 -12;
-          to: -90 0 8;
-          dur: 1100;
-          easing: easeInOutSine;
-          startEvents: chispaStart;
+
+          to: -90 0 5;
+
+          dur: 900;
+
+          easing: easeInOutQuad;
+
+          startEvents: aparecer;
+
         "
 
-      >
+      ></a-image>
 
-      </a-image>
+
+
+      <!--
+        Este cubo pequeño sirve como comprobación.
+
+        Si aparece, sabemos que el marcador está
+        siendo reconocido correctamente.
+      -->
+
+
+      <a-box
+
+        position="0.45 0.25 0"
+
+        scale="0.12 0.12 0.12"
+
+        material="color:#ff0000"
+
+      ></a-box>
+
 
 
     </a-marker>
+
+
+
+    <!-- ========================= -->
+    <!-- CÁMARA -->
+    <!-- ========================= -->
 
 
     <a-entity camera></a-entity>
@@ -196,5 +350,7 @@
 
   </a-scene>
 
+
 </body>
+
 </html>
